@@ -1,0 +1,50 @@
+#version 330 core
+out vec4 color;
+out vec4 fogColor;
+const vec3 fogTest=vec3(0.5f,0.5f,0.5f);
+in vec2 uv;
+uniform sampler2D tex;
+in vec3 position_worldspace;
+in vec3 normal_worldspace;
+uniform vec3 LightPosition_worldspace;
+uniform vec3 EyePosition_worldspace;
+uniform vec3 ambientLight;
+uniform vec2 data;
+in vec4 viewSpace;
+void main()
+{
+	//FOG
+	float denstiy = 0.004;
+	float dist = length(viewSpace);
+	float fogFactor=1/exp(denstiy*dist);
+	fogFactor=clamp(fogFactor,0.0,1.0);
+
+	vec4 textureColor=texture(tex,uv);
+	vec3 Il = vec3(1,1,0);
+	//vec3 textureColor=texture(tex,uv).rgb;
+	vec3 lightVector = normalize(LightPosition_worldspace - position_worldspace);
+	float brightness = dot(lightVector,normal_worldspace);
+	vec3 diffuseLight = vec3(brightness,brightness,brightness);
+	//diffuseLight = clamp(diffuseLight,0,1)*Il;
+	diffuseLight = clamp(diffuseLight,0,1)*ambientLight*10;
+	//Specular light calculations.
+	vec3 reflectedLightVector = reflect(-lightVector,normal_worldspace);
+	vec3 eyeDirectionVector = normalize(EyePosition_worldspace - position_worldspace);
+	float specularity = dot(reflectedLightVector,eyeDirectionVector);
+	float specularExponent = data.y;
+	specularity = pow(specularity,specularExponent);
+	vec3 specularLight = vec3(specularity,specularity,specularity);
+	//specularLight = clamp(specularLight,0,1)*clamp(specularity,0,1);
+	specularLight = clamp(specularLight,0,1)*ambientLight*10;
+	float d = abs(distance(position_worldspace,LightPosition_worldspace));
+	float r = data.x;
+	float att = 1 - (d/r);
+	if ( att < 0)
+		att = 0;
+	//color = vec4(textureColor.rgb,textureColor.a);
+	vec4 li = vec4(ambientLight + (diffuseLight*att) + (specularLight*att),0.5);
+	//ambientLight + (diffuseLight*att) + (specularLight*att)
+
+	color = (li*textureColor);
+	//color = mix(fogTest,color,fogTest);
+}

@@ -1,0 +1,58 @@
+#version 330 core
+
+in vec2 uv;
+in vec3 Position;
+out vec3 color;
+
+uniform sampler2D ice;
+uniform sampler2D sand;
+uniform sampler2D grass;
+uniform sampler2D rock;
+uniform sampler2D water;
+uniform float control;
+void main()
+{
+	float hightY=Position.y/255.0;
+	
+	if(control==1)
+	{
+		if(hightY >= 0.0 && hightY <= 0.20)
+		{
+			color = texture( sand, uv ).rgb;
+		}
+		else if(hightY > 0.20 && hightY <= 0.30)
+		{
+			float factor = hightY - 0.20;
+			factor = factor *10;
+			color = mix(texture( sand, uv ).rgb ,texture( grass, uv ).rgb ,factor);
+		}
+		else if(hightY > 0.30 && hightY <= 0.45)
+		{
+			color = texture( grass, uv ).rgb;
+		}
+		else if(hightY > 0.45 && hightY <= 0.55)
+		{
+			float factor = hightY - 0.45;
+			factor = factor *10;
+			color = mix(texture( grass, uv ).rgb ,texture( rock, uv ).rgb ,factor);
+		}
+		else if(hightY > 0.55 && hightY <= 0.75)
+		{
+			color = texture( rock, uv ).rgb;
+		}
+		else if(hightY > 0.70 && hightY <= 0.80)
+		{
+			float factor = hightY - 0.70;
+			factor = factor *10;
+			color = mix(texture( rock, uv ).rgb ,texture( ice, uv ).rgb ,factor);
+		}
+		else
+		{
+			color = texture( ice, uv ).rgb;
+		}
+	}
+	else if(control==2)
+	{
+		color = texture( water, uv ).rgb;
+	}
+}
